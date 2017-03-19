@@ -1,4 +1,7 @@
 # gotalk
+[![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://godoc.org/github.com/damoye/gotalk)
+[![Build Status](https://travis-ci.org/damoye/gotalk.svg?branch=master)](https://travis-ci.org/damoye/gotalk)
+[![Coverage Status](https://coveralls.io/repos/github/damoye/gotalk/badge.svg)](https://coveralls.io/github/damoye/gotalk)
 
 Simple Go network communication library.
 
