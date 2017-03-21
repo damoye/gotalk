@@ -4,34 +4,22 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"net"
 	"strconv"
 )
 
-// Connection is a message wrapper for net.Conn
-type Connection struct {
-	conn   net.Conn
-	reader *bufio.Reader
+// Encode encodes the message
+func Encode(message string) []byte {
+	return []byte(fmt.Sprintf("%d\r\n%s\r\n", len(message), message))
 }
 
-// NewConnection returns a new Connection
-func NewConnection(conn net.Conn) Connection {
-	return Connection{conn, bufio.NewReader(conn)}
-}
-
-// Send send a message. It can be called by multiple goroutine.
-func (connection *Connection) Send(message string) error {
-	_, err := fmt.Fprintf(connection.conn, "%d\r\n%s\r\n", len(message), message)
+// Decode decode from reader
+func Decode(reader *bufio.Reader) (message string, err error) {
+	head, err := reader.ReadString('\n')
 	if err != nil {
-		return err
+		return
 	}
-	return nil
-}
-
-// Receive receive a message. It can only be called by ONE goroutine.
-func (connection *Connection) Receive() (message string, err error) {
-	head, err := connection.reader.ReadString('\n')
-	if err != nil {
+	if len(head) < 3 {
+		err = fmt.Errorf("head %q is too short", head)
 		return
 	}
 	length, err := strconv.Atoi(head[:len(head)-2])
@@ -39,14 +27,9 @@ func (connection *Connection) Receive() (message string, err error) {
 		return
 	}
 	buff := make([]byte, length+2)
-	_, err = io.ReadFull(connection.reader, buff)
+	_, err = io.ReadFull(reader, buff)
 	if err != nil {
 		return
 	}
 	return string(buff[:length]), nil
-}
-
-// Close close the underlying net.Conn
-func (connection *Connection) Close() {
-	connection.conn.Close()
 }

@@ -16,21 +16,22 @@ Gotalk defines a protocol like this:
 
 For example:
 
-message     | bytes
-------------|----------------------
-hello world | 11\r\nhello world\r\n
-hello go    | 8\r\nhello go\r\n
+message       | bytes
+--------------|------------------------
+"hello world" | "11\r\nhello world\r\n"
+""            | "0\r\n\r\n"
 
 ## Installation
 ```sh
 go get github.com/damoye/gotalk
 ```
 
-## Demo
+## Example
 ```go
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"net"
@@ -39,15 +40,15 @@ import (
 )
 
 func handleConnection(conn net.Conn) {
-	connection := gotalk.NewConnection(conn)
-	defer connection.Close()
+	reader := bufio.NewReader(conn)
+	defer conn.Close()
 	for {
-		message, err := connection.Receive()
+		message, err := gotalk.Decode(reader)
 		if err != nil {
 			log.Print(err)
 			break
 		}
-		err = connection.Send(message)
+		_, err = conn.Write(gotalk.Encode(message))
 		if err != nil {
 			log.Print(err)
 			break
@@ -55,8 +56,8 @@ func handleConnection(conn net.Conn) {
 	}
 }
 
-func serve(port int) {
-	l, err := net.Listen("tcp", fmt.Sprint(":", port))
+func main() {
+	l, err := net.Listen("tcp", fmt.Sprint(":", 2000))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,9 +69,5 @@ func serve(port int) {
 		}
 		go handleConnection(conn)
 	}
-}
-
-func main() {
-	serve(2000)
 }
 ```
